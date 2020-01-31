@@ -53,7 +53,7 @@ metadata:
   labels:
     name: fiotools-read
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 8001
       targetPort: 8000

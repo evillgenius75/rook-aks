@@ -52,7 +52,7 @@ metadata:
   labels:
     name: fiotools-write
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 8000
       targetPort: 8000
