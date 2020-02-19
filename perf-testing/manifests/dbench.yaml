@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cephfs-pvc
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1000Gi
+  storageClassName: csi-cephfs
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dbench
+spec:
+  template:
+    spec:
+      containers:
+      - name: dbench
+        image: logdna/dbench:latest
+        imagePullPolicy: Always
+        env:
+          - name: DBENCH_MOUNTPOINT
+            value: /data
+          # - name: DBENCH_QUICK
+          #   value: "yes"
+          # - name: FIO_SIZE
+          #   value: 1G
+          # - name: FIO_OFFSET_INCREMENT
+          #   value: 256M
+          # - name: FIO_DIRECT
+          #   value: "0"
+        volumeMounts:
+        - name: dbench-pv
+          mountPath: /data
+      restartPolicy: Never
+      volumes:
+      - name: dbench-pv
+        persistentVolumeClaim:
+          claimName: cephfs-pvc
+  backoffLimit: 4
