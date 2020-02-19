@@ -412,4 +412,4 @@ As you can see the process to mount a volume in the container spec is the same a
 
 If you want to test performance you can run an `fio` based workload to get read and write performance and view graphs based on the results.
 
-In the perf-testing folder of this repo, there is a dbench yaml configured to test against this shared storage
+In the [perf-testing folder](./perf-testing/manifests/) of this repo, there is a dbench yaml configured to test against this shared storage.
