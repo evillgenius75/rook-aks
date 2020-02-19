@@ -1,19 +1,19 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: cephfs-pvc
+  name: azfile-prem-pvc
 spec:
   accessModes:
-  - ReadWriteMany
+    - ReadWriteMany
+  storageClassName: azurefile-prem
   resources:
     requests:
       storage: 1000Gi
-  storageClassName: csi-cephfs
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: dbench
+  name: dbench-file
 spec:
   template:
     spec:
@@ -39,5 +39,5 @@ spec:
       volumes:
       - name: dbench-pv
         persistentVolumeClaim:
-          claimName: cephfs-pvc
+          claimName: azfile-prem-pvc
   backoffLimit: 4

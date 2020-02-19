@@ -45,7 +45,7 @@ There are three steps we need to perform to install Rook:
 
 So let's get started:
 
-1. Add Common Resources
+### Add Common Resources
 
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/common.yaml
@@ -53,7 +53,7 @@ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/exam
 
 The common.yaml contains the namespace rook-ceph, common resources (e.g. clusterroles, bindings, service accounts etc.) and some Custom Resource Definitions from Rook.
 
-2. Add the Rook Operator
+### Add the Rook Operator
 
 The operator is responsible for managing Rook resources and needs to be configured to run on Azure Kubernetes Service. To manage Flex Volumes, AKS uses a directory that’s different from the “default directory”. So, we need to tell the operator which directory to use on the cluster nodes.
 
@@ -158,7 +158,7 @@ spec:
         emptyDir: {}
 ```
 
-3. Create the Cluster
+### Create the Cluster
 
 Deploying the Rook cluster is as easy as installing the Rook operator. As we are running our cluster with the Azure Kubernetes Service – a managed service – we don’t want to manually add disks to our storage nodes. Also, we don’t want to use a directory on the OS disk (which most of the examples out there will show you) as this will be deleted when the node will be upgraded to a new Kubernetes version.
 
@@ -271,7 +271,8 @@ spec:
 
 So, after a few minutes, you will see some pods running in the rook-ceph namespace. Make sure, that the OSD pods a running, before continuing with configuring the storage pool.
 
-$ kubectl get pods -n rook-ceph
+```shell
+kubectl get pods -n rook-ceph
 NAME                                                              READY   STATUS      RESTARTS   AGE
 csi-cephfsplugin-4qxsv                                            3/3     Running     0          28m
 csi-cephfsplugin-d2klt                                            3/3     Running     0          28m
@@ -307,8 +308,9 @@ rook-ceph-osd-prepare-set1-0-data-sv78n-v969p                     0/1     Comple
 rook-ceph-osd-prepare-set1-1-data-r6d46-t2c4q                     0/1     Completed   0          15m
 rook-ceph-osd-prepare-set1-2-data-fl8zq-rrl4r                     0/1     Completed   0          15m
 rook-ceph-osd-prepare-set1-3-data-qrrvf-jjv5b                     0/1     Completed   0          15m
+```
 
-## Configuring Storage
+### Configuring Storage
 
 Before Rook can provision persistent volumes, either a filesystem or a storage pool should be configured. In our example [rook-filesystem.yaml](./manifests/rook-filesystem.yaml), a Ceph Filesystem Pool is used:
 
@@ -360,7 +362,7 @@ parameters:
 reclaimPolicy: Delete
 ```
 
-## You now have a Azure Disk backed shared file system running in Cluster that is highly available!
+## You now have a Azure Disk backed shared file system running in Cluster that is highly available
 
 We can now deploy a workload to the Ceph system using a volume definition. Here is an example of what would be used to create a mount to a container in a pod define a ceph volume:
 
