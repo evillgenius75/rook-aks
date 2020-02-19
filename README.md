@@ -12,7 +12,7 @@ Let's start from the beginning:
 
 ## Create a nodepool for storage pods
 
-We add taints to our nodes to make sure that no pods will be scheduled on this nodepool as long as we explicitly tolerate it. We want to have these nodes exclusively for storage pods. You can also assign the size of the nodes for this nodepool to get maximum IO based on disk configuration.
+We add taints to our nodes to make sure that no pods will be scheduled on this nodepool as long as we explicitly tolerate it. We want to have these nodes exclusively for storage pods. You can also assign the size of the nodes for this nodepool to get maximum IO based on disk configuration by using the `--node-vm-size` parameter. For sizing your nodes based on required disk IO performance read the guidance [here](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/premium-storage-performance).
 
 ```shell
 az aks nodepool add --cluster-name <AKS_CLUSTER_NAME> \
