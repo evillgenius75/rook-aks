@@ -15,7 +15,7 @@ spec:
           requests:
             storage: 10Gi
   cephVersion:
-    image: ceph/ceph:v14.2.4-20190917
+    image: ceph/ceph:v14.2.6
     allowUnsupported: false
   dashboard:
     enabled: true
@@ -80,7 +80,7 @@ spec:
         spec:
           resources:
             requests:
-              storage: 100Gi
+              storage: 2000Gi
           storageClassName: managed-premium
           volumeMode: Block
           accessModes:

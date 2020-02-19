@@ -15,8 +15,8 @@ Let's start from the beginning:
 We add taints to our nodes to make sure that no pods will be scheduled on this nodepool as long as we explicitly tolerate it. We want to have these nodes exclusively for storage pods. You can also assign the size of the nodes for this nodepool to get maximum IO based on disk configuration.
 
 ```shell
-az aks nodepool add --cluster-name myrooktestclstr \
---name npstorage --resource-group rooktest-rg \
+az aks nodepool add --cluster-name <AKS_CLUSTER_NAME> \
+--name npstorage --resource-group <AKS_CLUSTER_RG> \
 --node-count 3 \
 --node-taints storage-node=true:NoSchedule
 ```
@@ -26,32 +26,29 @@ We should now have additional Nodes in our cluster for the second node pool.
 ```shell
 kubectl get nodes
 
-NAME                                 STATUS   ROLES   AGE    VERSION
-aks-npstandard-33852324-vmss000000   Ready    agent   10m    v1.14.8
-aks-npstandard-33852324-vmss000001   Ready    agent   10m    v1.14.8
-aks-npstandard-33852324-vmss000002   Ready    agent   10m    v1.14.8
-aks-npstorage-33852324-vmss000000    Ready    agent   2m3s   v1.14.8
-aks-npstorage-33852324-vmss000001    Ready    agent   2m9s   v1.14.8
-aks-npstorage-33852324-vmss000002    Ready    agent   119s   v1.14.8
+NAME                                STATUS   ROLES   AGE     VERSION
+aks-nodepool1-79276859-vmss000000   Ready    agent   7d      v1.15.7
+aks-nodepool1-79276859-vmss000001   Ready    agent   6d20h   v1.15.7
+aks-nodepool1-79276859-vmss000002   Ready    agent   6d20h   v1.15.7
+aks-npstorage-79276859-vmss000000   Ready    agent   2m6s    v1.15.7
+aks-npstorage-79276859-vmss000001   Ready    agent   2m6s    v1.15.7
+aks-npstorage-79276859-vmss000002   Ready    agent   116s    v1.15.7
 ```
 
 ## Installing Rook Components
 
-Let’s start installing Rook by cloning the repository from GitHub:
-
-$ git clone https://github.com/rook/rook.git
-After we have downloaded the repo to our local machine, there are three steps we need to perform to install Rook:
+There are three steps we need to perform to install Rook:
 
 1. Add Rook CRDs / namespace / common resources
 2. Add and configure the Rook operator
 3. Add the Rook cluster
 
-So, switch to the /cluster/examples/kubernetes/ceph directory and follow the steps below.
+So let's get started:
 
 1. Add Common Resources
 
 ```shell
-$ kubectl apply -f common.yaml
+kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/common.yaml
 ```
 
 The common.yaml contains the namespace rook-ceph, common resources (e.g. clusterroles, bindings, service accounts etc.) and some Custom Resource Definitions from Rook.
@@ -62,7 +59,7 @@ The operator is responsible for managing Rook resources and needs to be configur
 
 Furthermore, we need to adjust the settings for the CSI plugin to run the corresponding daemonsets on the storage nodes (remember, we added taints to the nodes. By default, the pods of the daemonsets Rook needs to work, won’t be scheduled on our storage nodes – we need to “tolerate” this).
 
-So, here’s the full operator.yaml file (→ **important parts**)
+So, here’s the full [rook-operator.yaml](./manifests/rook-operator.yaml) file (→ **important parts**)
 
 ```yaml
 apiVersion: apps/v1
@@ -175,7 +172,7 @@ default (default)   kubernetes.io/azure-disk   15m
 managed-premium     kubernetes.io/azure-disk   15m
 ```
 
-Now, let’s create the Rook Cluster. Again, we need to adjust the tolerations and add a node affinity that our OSDs will be scheduled on the storage nodes (→ **important parts**):
+Now, let’s create the Rook Cluster. Again, we need to adjust the tolerations and add a node affinity that our OSDs will be scheduled on the storage nodes using the [rook-cluster.yaml](./manifests/rook-cluster.yaml) file(→ **important parts**):
 
 ```yaml
 apiVersion: ceph.rook.io/v1
@@ -195,7 +192,7 @@ spec:
           requests:
             storage: 10Gi
   cephVersion:
-    image: ceph/ceph:v14.2.4-20190917
+    image: ceph/ceph:v14.2.6
     allowUnsupported: false
   dashboard:
     enabled: true
@@ -260,7 +257,7 @@ spec:
         spec:
           resources:
             requests:
-→             storage: 100Gi
+→             storage: 2000Gi
 →         storageClassName: managed-premium
           volumeMode: Block
           accessModes:
@@ -313,7 +310,7 @@ rook-ceph-osd-prepare-set1-3-data-qrrvf-jjv5b                     0/1     Comple
 
 ## Configuring Storage
 
-Before Rook can provision persistent volumes, either a filesystem or a storage pool should be configured. In our example, a Ceph Filesystem Pool is used:
+Before Rook can provision persistent volumes, either a filesystem or a storage pool should be configured. In our example [rook-filesystem.yaml](./manifests/rook-filesystem.yaml), a Ceph Filesystem Pool is used:
 
 ```yaml
 apiVersion: ceph.rook.io/v1
@@ -334,7 +331,7 @@ spec:
     activeStandby: true
 ```
 
-Next, we also need a storage class that will be using the Rook cluster / storage pool. In our example, we will not be using Flex Volume (which will be deprecated in furture versions of Rook/Ceph), instead we use Container Storage Interface.
+Next, we also need a storage class that will be using the Rook cluster / storage pool. In our example, [rook-storageclass.yaml](./manifests/rook-storageclass.yaml), we will not be using Flex Volume (which will be deprecated in future versions of Rook/Ceph), instead we use Container Storage Interface.
 
 ```yaml
 apiVersion: storage.k8s.io/v1
@@ -366,8 +363,6 @@ reclaimPolicy: Delete
 ## You now have a Azure Disk backed shared file system running in Cluster that is highly available!
 
 We can now deploy a workload to the Ceph system using a volume definition. Here is an example of what would be used to create a mount to a container in a pod define a ceph volume:
-
-
 
 ```yaml
 apiVersion: v1
